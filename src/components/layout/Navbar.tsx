@@ -18,9 +18,11 @@ import {
   Pill,
   CreditCard,
   UserCheck,
+  LogIn,
 } from 'lucide-react';
 import { useCareOS } from '../../services/store';
 import { UserRole } from '../../types/hospital';
+import { LoginModal } from '../auth/LoginModal';
 
 interface NavbarProps {
   onOpenDemoTour: () => void;
@@ -58,17 +60,71 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoTour, onOpenTestSuite 
     notifications,
     markNotificationRead,
     clearAllNotifications,
-    resetDemoData,
+    queueEntries,
+    doctors,
+    activeDoctorId,
+    activePatientId,
+    patients,
+    diagnosticOrders,
+    beds,
+    prescriptions,
+    invoices,
   } = useCareOS();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const roleDropdownRef = useRef<HTMLDivElement>(null);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const activeRoleOption = ROLES.find((r) => r.id === currentRole) || ROLES[0];
   const ActiveRoleIcon = activeRoleOption.icon;
+
+  // Compute live queue / waiting metrics for each role
+  const getRoleWaitingMetric = (roleId: UserRole): string => {
+    switch (roleId) {
+      case 'doctor': {
+        const waitingPatients = queueEntries.filter((q) => q.doctorId === activeDoctorId && q.state === 'WAITING');
+        const activeConsult = queueEntries.find((q) => q.doctorId === activeDoctorId && q.state === 'IN_CONSULTATION');
+        return `${waitingPatients.length} in queue · ${activeConsult ? 'Active Now' : '~15m wait'}`;
+      }
+      case 'patient': {
+        const patQueue = queueEntries.find((q) => q.patientId === activePatientId && q.state !== 'CANCELLED');
+        if (!patQueue) return 'No active token';
+        if (patQueue.state === 'IN_CONSULTATION') return `Token ${patQueue.token} · In Room`;
+        if (patQueue.state === 'CALLED') return `Token ${patQueue.token} · Calling Now!`;
+        return `Token ${patQueue.token} · ${patQueue.estimatedWaitMinutes}m wait`;
+      }
+      case 'receptionist': {
+        const waitingCount = queueEntries.filter((q) => q.state === 'WAITING').length;
+        return `${waitingCount} patients in waiting hall`;
+      }
+      case 'radiology': {
+        const pendingRad = diagnosticOrders.filter((d) => d.department === 'Radiology' && d.status !== 'completed').length;
+        return `${pendingRad} pending scans`;
+      }
+      case 'laboratory': {
+        const pendingLab = diagnosticOrders.filter((d) => d.department === 'Laboratory' && d.status !== 'completed').length;
+        return `${pendingLab} pending specimens`;
+      }
+      case 'nurse': {
+        const occBeds = beds.filter((b) => b.status === 'occupied').length;
+        return `${occBeds}/${beds.length} beds occupied`;
+      }
+      case 'pharmacist': {
+        const pendingRx = prescriptions.filter((p) => p.status !== 'dispensed').length;
+        return `${pendingRx} pending prescriptions`;
+      }
+      case 'billing': {
+        const unpaidBills = invoices.filter((i) => i.status !== 'paid').length;
+        return `${unpaidBills} pending settlements`;
+      }
+      case 'hospital_admin':
+      default:
+        return '6 Agents Active · Nominal';
+    }
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -292,6 +348,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoTour, onOpenTestSuite 
                 {ROLES.map((role) => {
                   const Icon = role.icon;
                   const isCurrent = currentRole === role.id;
+                  const waitInfo = getRoleWaitingMetric(role.id);
                   return (
                     <button
                       key={role.id}
@@ -299,7 +356,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoTour, onOpenTestSuite 
                         setCurrentRole(role.id);
                         setShowRoleDropdown(false);
                       }}
-                      className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
+                      className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                         isCurrent
                           ? 'bg-[#E8F7F3] text-[#0F9D8A] font-semibold border border-[#0F9D8A]/30'
                           : 'text-[#243746] hover:bg-[#F8FCFB] hover:text-[#0F9D8A] border border-transparent'
@@ -316,8 +373,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoTour, onOpenTestSuite 
                           <Icon className="w-3.5 h-3.5" />
                         </div>
                         <div className="truncate">
-                          <p className="font-semibold text-xs leading-snug truncate">{role.label}</p>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-xs leading-snug">{role.label}</span>
+                          </div>
                           <p className="text-[10px] text-[#536B7E] truncate">{role.personName}</p>
+                          <span className={`inline-block text-[9px] font-mono px-1.5 py-0.2 rounded mt-0.5 ${
+                            isCurrent
+                              ? 'bg-white/80 text-[#0F9D8A] font-bold border border-[#0F9D8A]/20'
+                              : 'bg-slate-100 text-[#536B7E]'
+                          }`}>
+                            ⏱ {waitInfo}
+                          </span>
                         </div>
                       </div>
                       {isCurrent && <Check className="w-4 h-4 text-[#0F9D8A] shrink-0 ml-2" />}
@@ -325,10 +391,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoTour, onOpenTestSuite 
                   );
                 })}
               </div>
+
+              {/* Dedicated Login Button at the very bottom of dropdown */}
+              <div className="pt-2 mt-1 border-t border-slate-100">
+                <button
+                  onClick={() => {
+                    setShowRoleDropdown(false);
+                    setShowLoginModal(true);
+                  }}
+                  className="w-full py-2 px-3 bg-[#0F9D8A] hover:bg-[#0B7A6B] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Login with Credentials</span>
+                </button>
+                <p className="text-[9px] text-[#536B7E] text-center mt-1">
+                  Patient phone (password: "password") &amp; staff SSO
+                </p>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </header>
   );
 };

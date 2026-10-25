@@ -49,14 +49,14 @@ export const TestSuiteModal: React.FC<TestSuiteModalProps> = ({ isOpen, onClose 
     // Test 1: Patient Registration & UHID Validation
     const t1Start = performance.now();
     const hasPatients = patients.length >= 8;
-    const uhidsValid = patients.every((p) => p.uhid.startsWith('UHID-NSRIT-'));
+    const uhidsValid = patients.every((p) => p.uhid.startsWith('UHID-CAREOS-'));
     results.push({
       id: 'test-1',
       name: 'Patient Demographics & UHID Generation',
       category: 'Patient Registry',
       passed: hasPatients && uhidsValid,
       executionMs: Math.round((performance.now() - t1Start) * 100) / 100,
-      assertion: `Verified ${patients.length} patient records conform to UHID-NSRIT-2026-XXXX format.`,
+      assertion: `Verified ${patients.length} patient records conform to UHID-CAREOS-2026-XXXX format.`,
     });
 
     // Test 2: Double-Booking Conflict Prevention

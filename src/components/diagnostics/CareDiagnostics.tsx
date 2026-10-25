@@ -8,6 +8,9 @@ import {
   AlertCircle,
   Eye,
   ShieldCheck,
+  Upload,
+  Image as ImageIcon,
+  Check,
 } from 'lucide-react';
 import { useCareOS } from '../../services/store';
 import { DiagnosticOrder } from '../../types/hospital';
@@ -21,6 +24,8 @@ export const CareDiagnostics: React.FC = () => {
   const [findings, setFindings] = useState('');
   const [impression, setImpression] = useState('');
   const [verifierName, setVerifierName] = useState('Dr. Vikramaditya Mehta (Chief Radiologist)');
+  const [scanImageUrl, setScanImageUrl] = useState<string>('');
+  const [fileAttachmentName, setFileAttachmentName] = useState<string>('');
 
   const filteredOrders = diagnosticOrders.filter((d) => d.department === activeTab);
   const pendingOrders = filteredOrders.filter((d) => d.status !== 'completed');
@@ -35,6 +40,11 @@ export const CareDiagnostics: React.FC = () => {
       );
       setImpression(ord.impression || 'Normal study with no acute cardiopulmonary abnormalities detected.');
       setVerifierName('Dr. Vikramaditya Mehta (Chief Radiologist, DMRD)');
+      setScanImageUrl(
+        ord.scanImageUrl ||
+          'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800'
+      );
+      setFileAttachmentName(ord.fileAttachmentName || `${ord.orderNumber}_DIGITAL_XRAY.dcm`);
     } else {
       setFindings(
         ord.findings ||
@@ -42,13 +52,36 @@ export const CareDiagnostics: React.FC = () => {
       );
       setImpression(ord.impression || 'Normal baseline lipid profile and renal function parameters.');
       setVerifierName('Dr. K. S. Rao (Chief Pathologist, MD Pathology)');
+      setScanImageUrl('');
+      setFileAttachmentName('');
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileAttachmentName(file.name);
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setScanImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSubmitReport = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
-    fulfillDiagnosticOrder(selectedOrder.id, findings, impression, verifierName);
+    fulfillDiagnosticOrder(
+      selectedOrder.id,
+      findings,
+      impression,
+      verifierName,
+      scanImageUrl,
+      fileAttachmentName
+    );
     setSelectedOrder(null);
   };
 
@@ -199,12 +232,38 @@ export const CareDiagnostics: React.FC = () => {
               {selectedOrder.status === 'completed' ? (
                 /* Read-Only Verified View */
                 <div className="space-y-4 text-xs">
-                  <div className="p-3 bg-[#E8F7F3] border border-[#0F9D8A]/30 rounded-lg text-[#0F9D8A] flex items-center gap-2 font-medium">
-                    <ShieldCheck className="w-5 h-5 text-[#0F9D8A]" />
-                    <span>
-                      Report finalized and cryptographically verified by {selectedOrder.verifiedBy} at {selectedOrder.completedAt}.
+                  <div className="p-3 bg-[#E8F7F3] border border-[#0F9D8A]/30 rounded-lg text-[#0F9D8A] flex items-center justify-between font-medium">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-[#0F9D8A]" />
+                      <span>
+                        Report finalized and verified by {selectedOrder.verifiedBy} at {selectedOrder.completedAt}.
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-[#0F9D8A]/30">
+                      Synchronized to Clinician &amp; Patient
                     </span>
                   </div>
+
+                  {selectedOrder.scanImageUrl && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <h5 className="font-bold text-[#243746] flex items-center gap-1.5">
+                          <ImageIcon className="w-4 h-4 text-[#0F9D8A]" />
+                          <span>Attached High-Definition Radiograph Scan</span>
+                        </h5>
+                        <span className="text-[10px] text-[#536B7E] font-mono">
+                          {selectedOrder.fileAttachmentName || 'SCAN_IMAGE.dcm'}
+                        </span>
+                      </div>
+                      <div className="bg-black/95 rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center p-3">
+                        <img
+                          src={selectedOrder.scanImageUrl}
+                          alt={selectedOrder.testName}
+                          className="max-h-72 w-auto object-contain rounded-lg shadow-md"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <h5 className="font-bold text-[#243746] mb-1">Detailed Findings</h5>
@@ -223,12 +282,99 @@ export const CareDiagnostics: React.FC = () => {
               ) : (
                 /* Editable Finalization Form */
                 <form onSubmit={handleSubmitReport} className="space-y-4 text-xs">
+                  {/* Radiology Scan Uploader */}
+                  {selectedOrder.department === 'Radiology' && (
+                    <div className="p-4 bg-[#F8FCFB] rounded-xl border border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-bold text-[#243746]">
+                          <Upload className="w-4 h-4 text-[#0F9D8A]" />
+                          <span>Upload &amp; Attach Digital Radiograph (X-Ray / MRI / CT)</span>
+                        </div>
+                        <span className="text-[10px] text-[#0F9D8A] font-semibold bg-[#E8F7F3] px-2 py-0.5 rounded">
+                          PACS Sync
+                        </span>
+                      </div>
+
+                      {/* File input and preset selector */}
+                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <label className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-[#243746] cursor-pointer flex items-center gap-1.5 shadow-xs">
+                          <Upload className="w-3.5 h-3.5 text-[#0F9D8A]" />
+                          <span>Choose Local Scan File...</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-[10px] text-[#536B7E]">or pick medical preset:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {[
+                            {
+                              label: 'Chest PA View',
+                              url: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800',
+                              name: 'CHEST_XRAY_PA.dcm',
+                            },
+                            {
+                              label: 'Bilateral Knees AP',
+                              url: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800',
+                              name: 'KNEES_AP_LAT.dcm',
+                            },
+                            {
+                              label: 'Brain MRI Axial',
+                              url: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800',
+                              name: 'BRAIN_MRI_T2.dcm',
+                            },
+                          ].map((pre, idx) => (
+                            <button
+                              type="button"
+                              key={idx}
+                              onClick={() => {
+                                setScanImageUrl(pre.url);
+                                setFileAttachmentName(pre.name);
+                              }}
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-colors cursor-pointer ${
+                                scanImageUrl === pre.url
+                                  ? 'bg-[#0F9D8A] text-white border-[#0F9D8A]'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-[#E8F7F3]'
+                              }`}
+                            >
+                              {pre.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Image Preview Box */}
+                      {scanImageUrl && (
+                        <div className="flex items-center gap-3 bg-black/95 p-3 rounded-lg border border-slate-700">
+                          <img
+                            src={scanImageUrl}
+                            alt="Scan Preview"
+                            className="w-16 h-16 object-cover rounded border border-slate-600"
+                          />
+                          <div className="text-white text-xs space-y-0.5">
+                            <span className="font-semibold block text-emerald-400">
+                              ✓ Radiograph Attached
+                            </span>
+                            <span className="text-[11px] text-slate-300 font-mono block">
+                              {fileAttachmentName || 'DIGITAL_RADIOGRAPH.dcm'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block">
+                              Will automatically synchronize to Doctor's OPD console &amp; Patient Portal upon signing.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <label className="text-[#243746] font-bold block mb-1">
                       Observations / Findings / Quantitative Results
                     </label>
                     <textarea
-                      rows={6}
+                      rows={5}
                       value={findings}
                       onChange={(e) => setFindings(e.target.value)}
                       placeholder="Enter detailed radiologic or pathological findings..."

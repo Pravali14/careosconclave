@@ -170,6 +170,8 @@ export interface DiagnosticOrder {
   verifiedBy?: string;
   cost: number;
   billed: boolean;
+  scanImageUrl?: string;
+  fileAttachmentName?: string;
 }
 
 export interface InvoiceItem {

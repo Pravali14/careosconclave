@@ -13,6 +13,10 @@ import {
   Activity,
   AlertCircle,
   Download,
+  Image as ImageIcon,
+  Eye,
+  X,
+  Pill,
 } from 'lucide-react';
 import { useCareOS } from '../../services/store';
 import { QueueEntry, PriorityClass } from '../../types/hospital';
@@ -104,20 +108,60 @@ export const CareDoctor: React.FC = () => {
     },
   ]);
 
+  // Active patient's diagnostic investigations and imaging
+  const patientDiagnostics = activePatient
+    ? diagnosticOrders.filter((d) => d.patientId === activePatient.patientId)
+    : [];
+
   const [isFinalized, setIsFinalized] = useState(false);
 
-  const handleAddMedication = () => {
+  // Interactive Add Medication Form State
+  const [showAddMedModal, setShowAddMedModal] = useState(false);
+  const [newMedData, setNewMedData] = useState({
+    drugName: '',
+    dosage: '500 mg',
+    frequency: '1-0-1 (Post meals)',
+    duration: '5 Days',
+    route: 'Oral',
+    instructions: 'Take after meals with water',
+  });
+
+  // Lightbox scan viewer state
+  const [viewingScan, setViewingScan] = useState<DiagnosticOrder | null>(null);
+
+  const handleOpenAddMed = () => {
+    setShowAddMedModal(true);
+  };
+
+  const handleSaveNewMedication = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMedData.drugName.trim()) return;
     setMedications([
       ...medications,
       {
-        drugName: 'Paracetamol 650mg Dolo',
-        dosage: '650 mg',
-        frequency: '1-0-1 (As needed)',
-        duration: '5 Days',
-        route: 'Oral',
-        instructions: 'Post meals for pain/fever',
+        ...newMedData,
       },
     ]);
+    setNewMedData({
+      drugName: '',
+      dosage: '500 mg',
+      frequency: '1-0-1 (Post meals)',
+      duration: '5 Days',
+      route: 'Oral',
+      instructions: 'Take after meals with water',
+    });
+    setShowAddMedModal(false);
+  };
+
+  const handleQuickPreset = (preset: {
+    drugName: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    route: string;
+    instructions: string;
+  }) => {
+    setNewMedData(preset);
   };
 
   const handleRemoveMedication = (idx: number) => {
@@ -333,13 +377,171 @@ export const CareDoctor: React.FC = () => {
                     Structured e-Prescription (CarePharmacy)
                   </h4>
                   <button
-                    onClick={handleAddMedication}
-                    className="flex items-center gap-1 text-xs text-[#0F9D8A] font-semibold hover:underline cursor-pointer"
+                    onClick={handleOpenAddMed}
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-[#E8F7F3] hover:bg-[#D4F1EA] text-[#0F9D8A] border border-[#0F9D8A]/30 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Medication</span>
                   </button>
                 </div>
+
+                {/* Interactive Medication Input Form */}
+                {showAddMedModal && (
+                  <div className="p-4 bg-white rounded-xl border-2 border-[#0F9D8A]/40 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-2">
+                        <Pill className="w-4 h-4 text-[#0F9D8A]" />
+                        <span className="font-bold text-xs text-[#243746]">
+                          Add New Medication to Prescription
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddMedModal(false)}
+                        className="text-slate-400 hover:text-slate-600 p-1"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Quick Preset Selector Chips */}
+                    <div>
+                      <span className="text-[10px] font-bold text-[#536B7E] uppercase tracking-wider block mb-1">
+                        Quick Clinical Presets:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { drugName: 'Atorvastatin 20mg', dosage: '20 mg', frequency: '0-0-1 (Night)', duration: '30 Days', route: 'Oral', instructions: 'After dinner at bedtime' },
+                          { drugName: 'Metformin 500mg ER', dosage: '500 mg', frequency: '1-0-1 (Post meals)', duration: '30 Days', route: 'Oral', instructions: 'Post meals with water' },
+                          { drugName: 'Amoxicillin 500mg', dosage: '500 mg', frequency: '1-1-1 (TID)', duration: '7 Days', route: 'Oral', instructions: 'Complete full antibiotic course' },
+                          { drugName: 'Pantoprazole 40mg', dosage: '40 mg', frequency: '1-0-0 (Morning AC)', duration: '14 Days', route: 'Oral', instructions: '30 mins before breakfast' },
+                          { drugName: 'Paracetamol 650mg Dolo', dosage: '650 mg', frequency: '1-0-1 (SOS)', duration: '5 Days', route: 'Oral', instructions: 'For pain or fever >100°F' },
+                          { drugName: 'Telmisartan 40mg', dosage: '40 mg', frequency: '1-0-0 (Morning)', duration: '30 Days', route: 'Oral', instructions: 'Morning post breakfast' },
+                        ].map((p, i) => (
+                          <button
+                            type="button"
+                            key={i}
+                            onClick={() => handleQuickPreset(p)}
+                            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-[#E8F7F3] hover:text-[#0F9D8A] text-[10px] font-medium text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                          >
+                            + {p.drugName}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Input Fields */}
+                    <form onSubmit={handleSaveNewMedication} className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs">
+                        <div className="sm:col-span-4">
+                          <label className="text-[11px] font-bold text-[#243746] block mb-1">
+                            Drug Name &amp; Strength *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Atorvastatin 20mg"
+                            value={newMedData.drugName}
+                            onChange={(e) => setNewMedData({ ...newMedData, drugName: e.target.value })}
+                            className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2 text-[#243746] font-semibold outline-none focus:border-[#0F9D8A]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="text-[11px] font-bold text-[#243746] block mb-1">
+                            Dosage
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 20 mg"
+                            value={newMedData.dosage}
+                            onChange={(e) => setNewMedData({ ...newMedData, dosage: e.target.value })}
+                            className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2 text-[#243746] outline-none focus:border-[#0F9D8A]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="text-[11px] font-bold text-[#243746] block mb-1">
+                            Route
+                          </label>
+                          <select
+                            value={newMedData.route}
+                            onChange={(e) => setNewMedData({ ...newMedData, route: e.target.value })}
+                            className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2 text-[#243746] outline-none focus:border-[#0F9D8A] cursor-pointer"
+                          >
+                            <option value="Oral">Oral</option>
+                            <option value="IV">IV</option>
+                            <option value="IM">IM</option>
+                            <option value="Sublingual">Sublingual</option>
+                            <option value="Inhalation">Inhalation</option>
+                            <option value="Topical">Topical</option>
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-4">
+                          <label className="text-[11px] font-bold text-[#243746] block mb-1">
+                            Frequency
+                          </label>
+                          <select
+                            value={newMedData.frequency}
+                            onChange={(e) => setNewMedData({ ...newMedData, frequency: e.target.value })}
+                            className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2 text-[#243746] outline-none focus:border-[#0F9D8A] cursor-pointer"
+                          >
+                            <option value="1-0-0 (Morning Once Daily)">1-0-0 (Morning Once Daily)</option>
+                            <option value="1-0-1 (Morning & Night Post Meals)">1-0-1 (Morning &amp; Night Post Meals)</option>
+                            <option value="0-0-1 (Night Bedtime HS)">0-0-1 (Night Bedtime HS)</option>
+                            <option value="1-1-1 (Three Times Daily TID)">1-1-1 (Three Times Daily TID)</option>
+                            <option value="SOS (As Needed for Pain/Fever)">SOS (As Needed for Pain/Fever)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        <div>
+                          <label className="text-[11px] font-bold text-[#243746] block mb-1">
+                            Duration
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 5 Days / 30 Days"
+                            value={newMedData.duration}
+                            onChange={(e) => setNewMedData({ ...newMedData, duration: e.target.value })}
+                            className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2 text-[#243746] outline-none focus:border-[#0F9D8A]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-[#243746] block mb-1">
+                            Instructions
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Post meals with full glass of water"
+                            value={newMedData.instructions}
+                            onChange={(e) => setNewMedData({ ...newMedData, instructions: e.target.value })}
+                            className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2 text-[#243746] outline-none focus:border-[#0F9D8A]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddMedModal(false)}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#536B7E] hover:bg-slate-50 text-xs font-semibold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-1.5 rounded-lg bg-[#0F9D8A] hover:bg-[#0B7A6B] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+                        >
+                          Add to Prescription
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   {medications.map((med, idx) => (
@@ -445,6 +647,81 @@ export const CareDoctor: React.FC = () => {
                   })}
                 </div>
               </div>
+
+              {/* Synchronized Radiology Scans & Lab Results for this Patient */}
+              {patientDiagnostics.length > 0 && (
+                <div className="space-y-3 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-[#243746] uppercase tracking-wider flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#0F9D8A]" />
+                      <span>Synchronized Diagnostic Imaging &amp; Lab Reports</span>
+                    </h4>
+                    <span className="text-[10px] text-[#0F9D8A] font-mono font-bold bg-[#E8F7F3] px-2 py-0.5 rounded border border-[#0F9D8A]/20">
+                      Live PACS/RIS Sync
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {patientDiagnostics.map((diag) => (
+                      <div
+                        key={diag.id}
+                        className="p-3 bg-[#F8FCFB] rounded-xl border border-slate-200 space-y-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[#243746]">{diag.testName}</span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                              diag.status === 'completed'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            {diag.status.toUpperCase()}
+                          </span>
+                        </div>
+
+                        {diag.findings && (
+                          <p className="text-[11px] text-[#536B7E] line-clamp-2 italic">
+                            "{diag.findings}"
+                          </p>
+                        )}
+
+                        {diag.scanImageUrl ? (
+                          <div className="flex items-center gap-2 pt-1">
+                            <img
+                              src={diag.scanImageUrl}
+                              alt={diag.testName}
+                              className="w-14 h-14 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => setViewingScan(diag)}
+                            />
+                            <div className="flex-1">
+                              <span className="text-[10px] text-[#536B7E] block">
+                                Verified by {diag.verifiedBy}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setViewingScan(diag)}
+                                className="mt-1 text-[11px] font-bold text-[#0F9D8A] hover:underline flex items-center gap-1 cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Inspect Full Radiology Scan</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : diag.status === 'completed' ? (
+                          <span className="text-[10px] text-slate-500 block">
+                            Signed off by {diag.verifiedBy}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-600 block">
+                            Sample in processing suite
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Bottom Actions */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
@@ -568,6 +845,79 @@ export const CareDoctor: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox Diagnostic Imaging Viewer */}
+      {viewingScan && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-slate-200 bg-[#E8F7F3]/40 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-[#0F9D8A]" />
+                <div>
+                  <h3 className="font-bold text-sm text-[#243746]">{viewingScan.testName}</h3>
+                  <span className="text-[11px] text-[#536B7E] font-mono">
+                    Ref: {viewingScan.orderNumber} · Patient: {viewingScan.patientName}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingScan(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-[#243746] hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto space-y-4 flex-1">
+              {viewingScan.scanImageUrl && (
+                <div className="bg-black rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center p-2">
+                  <img
+                    src={viewingScan.scanImageUrl}
+                    alt={viewingScan.testName}
+                    className="max-h-96 w-auto object-contain rounded-lg shadow-md"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2 bg-[#F8FCFB] p-4 rounded-xl border border-slate-200 text-xs">
+                <div>
+                  <span className="font-bold text-[#243746] block text-[11px] uppercase tracking-wide">
+                    Radiologist Findings:
+                  </span>
+                  <p className="text-slate-700 mt-1 leading-relaxed">
+                    {viewingScan.findings || 'No formal findings logged yet.'}
+                  </p>
+                </div>
+
+                {viewingScan.impression && (
+                  <div className="pt-2 border-t border-slate-200">
+                    <span className="font-bold text-[#0F9D8A] block text-[11px] uppercase tracking-wide">
+                      Clinical Impression:
+                    </span>
+                    <p className="text-slate-800 font-medium mt-0.5">
+                      {viewingScan.impression}
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-[#536B7E]">
+                  <span>Verified &amp; Digitally Signed by: <strong>{viewingScan.verifiedBy}</strong></span>
+                  <span className="font-mono">{viewingScan.completedAt || '09:22 AM'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                onClick={() => setViewingScan(null)}
+                className="px-4 py-1.5 bg-[#0F9D8A] text-white text-xs font-bold rounded-lg hover:bg-[#0B7A6B] cursor-pointer"
+              >
+                Close Viewer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

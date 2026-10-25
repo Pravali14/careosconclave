@@ -112,8 +112,18 @@ interface CareOSContextType {
     orderId: string,
     findings: string,
     impression: string,
-    verifiedBy: string
+    verifiedBy: string,
+    scanImageUrl?: string,
+    fileAttachmentName?: string
   ) => void;
+  createInvoice: (data: {
+    patientId: string;
+    items: Array<{ description: string; department: string; amount: number; referenceId?: string }>;
+    paymentMethod?: 'Cash' | 'UPI/QR' | 'Credit/Debit Card' | 'Insurance';
+    markPaid?: boolean;
+    discount?: number;
+  }) => Invoice;
+  loginPatientByPhone: (phone: string, password: string) => { success: boolean; patient?: Patient; error?: string };
   dispenseMedication: (prescriptionId: string, medicationId: string) => void;
   recordPayment: (
     invoiceId: string,
@@ -308,7 +318,7 @@ export const CareOSProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // 1. Patient Registration
   const registerPatient = (data: Omit<Patient, 'id' | 'uhid' | 'createdAt'>): Patient => {
     const nextIdNum = patients.length + 1;
-    const uhid = `UHID-NSRIT-2026-${String(1000 + nextIdNum).padStart(4, '0')}`;
+    const uhid = `UHID-CAREOS-2026-${String(1000 + nextIdNum).padStart(4, '0')}`;
     const newPatient: Patient = {
       ...data,
       id: `pat-${Date.now()}`,
@@ -367,8 +377,9 @@ export const CareOSProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       };
     }
 
+    const aptSeq = 100 + appointments.length + 1;
     const newAppointment: Appointment = {
-      id: `apt-${Date.now()}`,
+      id: `CAREOS-APT-2026-${String(aptSeq).padStart(4, '0')}`,
       patientId: patient.id,
       patientName: patient.name,
       patientPhone: patient.phone,
@@ -954,7 +965,9 @@ export const CareOSProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     orderId: string,
     findings: string,
     impression: string,
-    verifiedBy: string
+    verifiedBy: string,
+    scanImageUrl?: string,
+    fileAttachmentName?: string
   ) => {
     setDiagnosticOrders((prev) =>
       prev.map((ord) =>
@@ -966,6 +979,8 @@ export const CareOSProvider: React.FC<{ children: ReactNode }> = ({ children }) 
               findings,
               impression,
               verifiedBy,
+              scanImageUrl: scanImageUrl || ord.scanImageUrl,
+              fileAttachmentName: fileAttachmentName || ord.fileAttachmentName,
             }
           : ord
       )
@@ -1072,6 +1087,111 @@ export const CareOSProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       },
       ...prev,
     ]);
+  };
+
+  // 11B. Create New Hospital Invoice
+  const createInvoice = (data: {
+    patientId: string;
+    items: Array<{ description: string; department: string; amount: number; referenceId?: string }>;
+    paymentMethod?: 'Cash' | 'UPI/QR' | 'Credit/Debit Card' | 'Insurance';
+    markPaid?: boolean;
+    discount?: number;
+  }): Invoice => {
+    const patient = patients.find((p) => p.id === data.patientId) || patients[0];
+    const subtotal = data.items.reduce((s, it) => s + it.amount, 0);
+    const discount = data.discount || 0;
+    const totalAmount = Math.max(0, subtotal - discount);
+    const isPaid = !!data.markPaid;
+    const paidAmount = isPaid ? totalAmount : 0;
+    const invNumber = `INV-2026-${String(200 + invoices.length + 1).padStart(4, '0')}`;
+
+    const newInvoice: Invoice = {
+      id: `inv-${Date.now()}`,
+      invoiceNumber: invNumber,
+      consultationId: 'direct-billing',
+      patientId: patient.id,
+      patientName: patient.name,
+      patientUhid: patient.uhid,
+      date: '2026-10-24',
+      items: data.items.map((it, idx) => ({
+        id: `inv-item-${Date.now()}-${idx}`,
+        description: it.description,
+        department: it.department,
+        amount: it.amount,
+        referenceId: it.referenceId || `ref-${idx}`,
+      })),
+      totalAmount,
+      paidAmount,
+      status: isPaid ? 'paid' : 'pending',
+      paymentMethod: data.paymentMethod || 'UPI/QR',
+    };
+
+    setInvoices((prev) => [newInvoice, ...prev]);
+
+    setAuditLogs((prev) => [
+      {
+        id: `aud-${Date.now()}`,
+        timestamp: currentTime,
+        userId: 'usr-bill',
+        userName: 'CareOS Billing Desk',
+        role: 'billing',
+        action: 'INVOICE_GENERATED',
+        targetType: 'Invoice',
+        targetId: invNumber,
+        details: `Created invoice ${invNumber} for ${patient.name} totaling ₹${totalAmount} (${newInvoice.items.length} items)`,
+      },
+      ...prev,
+    ]);
+
+    setNotifications((prev) => [
+      {
+        id: `notif-${Date.now()}`,
+        timestamp: currentTime,
+        title: `New Hospital Invoice ${invNumber}`,
+        message: `Generated ₹${totalAmount} bill for ${patient.name}. Status: ${newInvoice.status}.`,
+        type: 'billing',
+        read: false,
+      },
+      ...prev,
+    ]);
+
+    return newInvoice;
+  };
+
+  // 11C. Patient Portal Credential Auth
+  const loginPatientByPhone = (
+    phoneInput: string,
+    passwordInput: string
+  ): { success: boolean; patient?: Patient; error?: string } => {
+    const cleanInput = phoneInput.replace(/[\s\-\+\(\)]/g, '').toLowerCase();
+    if (!cleanInput) {
+      return { success: false, error: 'Please enter your registered mobile number or UHID.' };
+    }
+
+    if (passwordInput.toLowerCase() !== 'password' && passwordInput !== 'careos' && passwordInput !== 'admin') {
+      return { success: false, error: 'Invalid password. (Default demo password is "password")' };
+    }
+
+    const matched = patients.find((p) => {
+      const cleanPhone = p.phone.replace(/[\s\-\+\(\)]/g, '');
+      const cleanUhid = p.uhid.toLowerCase();
+      return (
+        cleanPhone.includes(cleanInput) ||
+        cleanInput.includes(cleanPhone) ||
+        cleanUhid.includes(cleanInput)
+      );
+    });
+
+    if (!matched) {
+      return {
+        success: false,
+        error: `No patient account found for "${phoneInput}". Please verify your phone number or register at Reception.`,
+      };
+    }
+
+    setActivePatientId(matched.id);
+    setCurrentRole('patient');
+    return { success: true, patient: matched };
   };
 
   // 12. Nursing Station
@@ -1259,6 +1379,8 @@ export const CareOSProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         addNotification,
         addAgentLog,
         addAuditLog,
+        createInvoice,
+        loginPatientByPhone,
         updateBedStatus,
         rebalanceQueueBetweenDoctors,
       }}

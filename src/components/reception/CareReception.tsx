@@ -10,9 +10,28 @@ import {
   Users,
   UserCheck,
   Sparkles,
+  KeyRound,
+  LogIn,
+  ExternalLink,
+  ShieldCheck,
+  Ticket,
 } from 'lucide-react';
 import { useCareOS } from '../../services/store';
 import { DepartmentType, PriorityClass } from '../../types/hospital';
+
+interface ConfirmedBookingPass {
+  appointmentId: string;
+  patientId: string;
+  patientName: string;
+  patientUhid: string;
+  patientPhone: string;
+  doctorName: string;
+  department: string;
+  roomNumber: string;
+  scheduledTime: string;
+  token?: string;
+  waitMinutes?: number;
+}
 
 export const CareReception: React.FC = () => {
   const {
@@ -23,6 +42,8 @@ export const CareReception: React.FC = () => {
     registerPatient,
     bookAppointment,
     checkInPatient,
+    setActivePatientId,
+    setCurrentRole,
   } = useCareOS();
 
   const [activeTab, setActiveTab] = useState<'checkin' | 'book' | 'register'>('checkin');
@@ -49,8 +70,10 @@ export const CareReception: React.FC = () => {
   const [bookingDoctorId, setBookingDoctorId] = useState(doctors[0]?.id || '');
   const [bookingTime, setBookingTime] = useState('10:00 AM');
   const [bookingReason, setBookingReason] = useState('');
+  const [autoCheckIn, setAutoCheckIn] = useState(true);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
+  const [confirmedPass, setConfirmedPass] = useState<ConfirmedBookingPass | null>(null);
 
   // Check-in Priority
   const [checkinPriority, setCheckinPriority] = useState<PriorityClass>('P3_SCHEDULED');
@@ -60,15 +83,53 @@ export const CareReception: React.FC = () => {
   const waitingCount = queueEntries.filter((q) => q.state === 'WAITING').length;
   const completedCount = queueEntries.filter((q) => q.state === 'COMPLETED').length;
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent, andBook: boolean = false) => {
     e.preventDefault();
     if (!newPatient.name || !newPatient.phone) {
       alert('Patient name and phone number are required.');
       return;
     }
     const created = registerPatient(newPatient);
-    setRegisteredSuccess(`Successfully registered ${created.name}! Generated ${created.uhid}.`);
+    setRegisteredSuccess(`Successfully registered ${created.name}! Generated ${created.uhid}. Phone: ${created.phone}`);
     setBookingPatientId(created.id);
+
+    if (andBook) {
+      // Auto-book for selected doctor
+      const targetDoc = doctors.find((d) => d.id === bookingDoctorId) || doctors[0];
+      const res = bookAppointment({
+        patientId: created.id,
+        doctorId: targetDoc.id,
+        scheduledTime: bookingTime,
+        date: '2026-10-24',
+        type: 'scheduled',
+        reason: bookingReason || 'New Patient Outpatient Consultation',
+      });
+
+      if (res.success && res.appointment) {
+        let tokenStr: string | undefined;
+        let waitMins: number | undefined;
+        if (autoCheckIn) {
+          const qEntry = checkInPatient(res.appointment.id, checkinPriority);
+          tokenStr = qEntry.token;
+          waitMins = qEntry.estimatedWaitMinutes;
+        }
+
+        setConfirmedPass({
+          appointmentId: res.appointment.id,
+          patientId: created.id,
+          patientName: created.name,
+          patientUhid: created.uhid,
+          patientPhone: created.phone,
+          doctorName: targetDoc.name,
+          department: targetDoc.department,
+          roomNumber: targetDoc.roomNumber,
+          scheduledTime: bookingTime,
+          token: tokenStr,
+          waitMinutes: waitMins,
+        });
+      }
+    }
+
     setNewPatient({
       name: '',
       age: 35,
@@ -79,13 +140,16 @@ export const CareReception: React.FC = () => {
       bloodGroup: 'B+',
       address: 'Visakhapatnam, AP',
     });
-    setTimeout(() => setRegisteredSuccess(null), 5000);
+    setTimeout(() => setRegisteredSuccess(null), 8000);
   };
 
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault();
     setBookingError(null);
     setBookingSuccess(null);
+
+    const pat = patients.find((p) => p.id === bookingPatientId);
+    const doc = doctors.find((d) => d.id === bookingDoctorId);
 
     const res = bookAppointment({
       patientId: bookingPatientId,
@@ -97,7 +161,29 @@ export const CareReception: React.FC = () => {
     });
 
     if (res.success && res.appointment) {
-      setBookingSuccess(`Appointment booked successfully! Ref: ${res.appointment.id}. Ready for check-in.`);
+      let tokenStr: string | undefined;
+      let waitMins: number | undefined;
+      if (autoCheckIn) {
+        const qEntry = checkInPatient(res.appointment.id, checkinPriority);
+        tokenStr = qEntry.token;
+        waitMins = qEntry.estimatedWaitMinutes;
+      }
+
+      setConfirmedPass({
+        appointmentId: res.appointment.id,
+        patientId: pat?.id || bookingPatientId,
+        patientName: pat?.name || 'Patient',
+        patientUhid: pat?.uhid || 'UHID-CAREOS-2026',
+        patientPhone: pat?.phone || '',
+        doctorName: doc?.name || 'Physician',
+        department: doc?.department || bookingDept,
+        roomNumber: doc?.roomNumber || 'OPD-101',
+        scheduledTime: bookingTime,
+        token: tokenStr,
+        waitMinutes: waitMins,
+      });
+
+      setBookingSuccess(`Appointment booked successfully! Ref: ${res.appointment.id}. Ready for live clinical flow.`);
       setBookingReason('');
     } else {
       setBookingError(res.error || 'Failed to book appointment');
@@ -293,6 +379,69 @@ export const CareReception: React.FC = () => {
             CareOS validates clinician availability in real-time to prevent overlapping schedule conflicts.
           </p>
 
+          {/* Confirmed Booking Pass with Patient Portal Credentials */}
+          {confirmedPass && (
+            <div className="mb-6 p-4 bg-[#E8F7F3] border-2 border-[#0F9D8A]/40 rounded-xl space-y-3 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-[#0F9D8A]" />
+                  <span className="font-bold text-sm text-[#243746]">CareOS Digital Booking Pass &amp; Credentials</span>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0F9D8A] text-white">
+                  CONFIRMED
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-white p-3 rounded-lg border border-[#0F9D8A]/20">
+                <div>
+                  <span className="text-[#536B7E] block text-[10px]">Booking Ref:</span>
+                  <span className="font-mono font-bold text-[#243746]">{confirmedPass.appointmentId}</span>
+                </div>
+                <div>
+                  <span className="text-[#536B7E] block text-[10px]">CareOS UHID:</span>
+                  <span className="font-mono font-bold text-[#0F9D8A]">{confirmedPass.patientUhid}</span>
+                </div>
+                <div>
+                  <span className="text-[#536B7E] block text-[10px]">Clinician &amp; Room:</span>
+                  <span className="font-semibold text-[#243746]">{confirmedPass.doctorName} ({confirmedPass.roomNumber})</span>
+                </div>
+                <div>
+                  <span className="text-[#536B7E] block text-[10px]">Queue Token:</span>
+                  <span className="font-mono font-bold text-amber-700">{confirmedPass.token || 'Checked In'}</span>
+                  {confirmedPass.waitMinutes !== undefined && (
+                    <span className="text-[10px] text-[#536B7E] block">~{confirmedPass.waitMinutes}m wait</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Patient Login Box */}
+              <div className="bg-white/90 p-3 rounded-lg border border-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 font-bold text-[#243746]">
+                    <KeyRound className="w-4 h-4 text-[#0F9D8A]" />
+                    <span>Patient Portal Login Generated:</span>
+                  </div>
+                  <div className="font-mono text-[11px] text-[#536B7E] space-x-3">
+                    <span>Username: <strong className="text-[#243746]">{confirmedPass.patientPhone}</strong></span>
+                    <span>Password: <strong className="text-[#0F9D8A]">password</strong></span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActivePatientId(confirmedPass.patientId);
+                    setCurrentRole('patient');
+                  }}
+                  className="px-4 py-2 bg-[#0F9D8A] hover:bg-[#0B7A6B] text-white font-bold rounded-lg transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-xs active:scale-95"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Open Patient Dashboard Now</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {bookingError && (
             <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -300,7 +449,7 @@ export const CareReception: React.FC = () => {
             </div>
           )}
 
-          {bookingSuccess && (
+          {bookingSuccess && !confirmedPass && (
             <div className="mb-4 p-3 bg-[#E8F7F3] border border-[#0F9D8A]/30 rounded-lg text-[#0F9D8A] text-xs flex items-center gap-2 font-medium">
               <CheckCircle className="w-4 h-4 shrink-0" />
               <span>{bookingSuccess}</span>
@@ -403,6 +552,19 @@ export const CareReception: React.FC = () => {
                 onChange={(e) => setBookingReason(e.target.value)}
                 className="w-full bg-[#F8FCFB] border border-slate-200 rounded-lg p-2.5 text-[#243746] outline-none focus:border-[#0F9D8A]"
               />
+            </div>
+
+            <div className="flex items-center gap-2 p-2.5 bg-[#F8FCFB] rounded-lg border border-slate-200">
+              <input
+                type="checkbox"
+                id="autoCheckIn"
+                checked={autoCheckIn}
+                onChange={(e) => setAutoCheckIn(e.target.checked)}
+                className="accent-[#0F9D8A] w-4 h-4 cursor-pointer"
+              />
+              <label htmlFor="autoCheckIn" className="text-[#243746] font-semibold cursor-pointer">
+                Auto Check-In into CareQueue &amp; Generate Live Token immediately
+              </label>
             </div>
 
             <div className="pt-2">
@@ -539,12 +701,21 @@ export const CareReception: React.FC = () => {
               />
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#0F9D8A] hover:bg-[#0B7A6B] text-white font-bold rounded-lg transition-colors shadow-xs cursor-pointer"
+                onClick={(e) => handleRegister(e, false)}
+                className="flex-1 py-2.5 bg-white hover:bg-slate-50 text-[#0F9D8A] border border-[#0F9D8A] font-bold rounded-lg transition-colors shadow-xs cursor-pointer text-center"
               >
                 Register Patient &amp; Issue UHID
+              </button>
+              <button
+                type="button"
+                onClick={(e) => handleRegister(e, true)}
+                className="flex-1 py-2.5 bg-[#0F9D8A] hover:bg-[#0B7A6B] text-white font-bold rounded-lg transition-colors shadow-xs cursor-pointer text-center flex items-center justify-center gap-1.5"
+              >
+                <Ticket className="w-4 h-4" />
+                <span>Register &amp; Book Live Token Now</span>
               </button>
             </div>
           </form>

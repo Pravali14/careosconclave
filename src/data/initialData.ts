@@ -121,7 +121,7 @@ export const INITIAL_DOCTORS: Doctor[] = [
 export const INITIAL_PATIENTS: Patient[] = [
   {
     id: 'pat-1',
-    uhid: 'UHID-NSRIT-2026-1001',
+    uhid: 'UHID-CAREOS-2026-1001',
     name: 'Rajesh Kumar Naidu',
     age: 48,
     gender: 'Male',
@@ -134,7 +134,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-2',
-    uhid: 'UHID-NSRIT-2026-1002',
+    uhid: 'UHID-CAREOS-2026-1002',
     name: 'Sunita Raman',
     age: 36,
     gender: 'Female',
@@ -147,7 +147,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-3',
-    uhid: 'UHID-NSRIT-2026-1003',
+    uhid: 'UHID-CAREOS-2026-1003',
     name: 'Master Ayaan Reddy',
     age: 6,
     gender: 'Male',
@@ -160,7 +160,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-4',
-    uhid: 'UHID-NSRIT-2026-1004',
+    uhid: 'UHID-CAREOS-2026-1004',
     name: 'Venkat Ramana Murthy',
     age: 62,
     gender: 'Male',
@@ -173,7 +173,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-5',
-    uhid: 'UHID-NSRIT-2026-1005',
+    uhid: 'UHID-CAREOS-2026-1005',
     name: 'Lakshmi Prasanna Devi',
     age: 54,
     gender: 'Female',
@@ -186,7 +186,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-6',
-    uhid: 'UHID-NSRIT-2026-1006',
+    uhid: 'UHID-CAREOS-2026-1006',
     name: 'Sai Kiran Varma',
     age: 29,
     gender: 'Male',
@@ -199,7 +199,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-7',
-    uhid: 'UHID-NSRIT-2026-1007',
+    uhid: 'UHID-CAREOS-2026-1007',
     name: 'Ananya Sastry',
     age: 24,
     gender: 'Female',
@@ -212,7 +212,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-8',
-    uhid: 'UHID-NSRIT-2026-1008',
+    uhid: 'UHID-CAREOS-2026-1008',
     name: 'Suresh Babu Chodisetty',
     age: 41,
     gender: 'Male',
@@ -225,7 +225,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-9',
-    uhid: 'UHID-NSRIT-2026-1009',
+    uhid: 'UHID-CAREOS-2026-1009',
     name: 'Bhanumathi Raju',
     age: 58,
     gender: 'Female',
@@ -238,7 +238,7 @@ export const INITIAL_PATIENTS: Patient[] = [
   },
   {
     id: 'pat-10',
-    uhid: 'UHID-NSRIT-2026-1010',
+    uhid: 'UHID-CAREOS-2026-1010',
     name: 'Chaitanya Krishna',
     age: 33,
     gender: 'Male',
@@ -262,12 +262,12 @@ export const INITIAL_PATIENTS: Patient[] = [
     const genders: ('Male' | 'Female')[] = idx % 2 === 0 ? ['Male', 'Female'] : ['Female', 'Male'];
     return {
       id: `pat-${idNum}`,
-      uhid: `UHID-NSRIT-2026-${1000 + idNum}`,
+      uhid: `UHID-CAREOS-2026-${1000 + idNum}`,
       name,
       age: 20 + ((idx * 7) % 55),
       gender: genders[idx % 2],
       phone: `+91 98480 ${10000 + idNum}`,
-      email: `patient${idNum}@nsrit-careos.org`,
+      email: `patient${idNum}@careos-hospital.org`,
       emergencyContact: `+91 98480 ${90000 + idNum}`,
       bloodGroup: ['A+', 'B+', 'O+', 'AB+', 'O-'][idx % 5],
       address: `Locality ${idx + 1}, Visakhapatnam, AP`,
@@ -698,6 +698,8 @@ export const INITIAL_DIAGNOSTIC_ORDERS: DiagnosticOrder[] = [
     verifiedBy: 'Dr. Vikramaditya Mehta (Chief Radiologist)',
     cost: 550,
     billed: true,
+    scanImageUrl: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800',
+    fileAttachmentName: 'CHEST_XRAY_PA_RAJESH_NAIDU.dcm',
   },
   {
     id: 'diag-2',
