@@ -1,0 +1,1244 @@
+# CAREOS — MASTER FULL-STACK APPLICATION DEVELOPMENT PROMPT
+## Build a Complete AI-Powered Healthcare Operating System
+
+You are a principal software architect, senior full-stack engineer, healthcare technology specialist, AI systems engineer, UX/UI designer, database architect, security engineer, and quality assurance engineer.
+
+Your mission is to DESIGN, DEVELOP, CONNECT, TEST, and DELIVER a complete, production-oriented healthcare operations web application called **CareOS**.
+
+This application is being developed by:
+
+**Team:** INNOGENIX  
+**Institution:** NSRIT, Visakhapatnam  
+**Hackathon Theme:** HealthTech & BioTech  
+**Official Problem Statement:** ClinicQueue — Predictable Outpatient Queue Manager
+
+CareOS is our larger healthcare operating system, while **CareQueue** is the primary module addressing the official hackathon challenge.
+
+Do not build only a static UI.
+
+Do not build only a landing page.
+
+Do not create disconnected dashboard mockups.
+
+Build a functional, responsive, database-backed, role-based healthcare management platform with operational workflows, AI assistance, real-time synchronization, and a working demonstration environment.
+
+# 1. PRODUCT VISION
+
+## CAREOS
+### One Hospital. One Intelligence Layer. Connected Care.
+
+CareOS is a centralized, AI-assisted healthcare operating system connecting:
+
+- Patients
+- Receptionists
+- Doctors
+- Nurses
+- Radiology departments
+- Laboratories
+- Pharmacy
+- Billing and insurance
+- Hospital administrators
+- Hospital operations staff
+- Specialized AI agents
+- Existing hospital software
+
+The objective is to transform fragmented hospital operations into coordinated, intelligent workflows.
+
+The platform must reduce repetitive administrative work, improve queue predictability, provide operational visibility, and help hospital staff coordinate patient care.
+
+CareOS must support an end-to-end patient journey:
+
+Patient Registration → Appointment Booking → Check-in → Queue Prediction → Consultation → Prescription → Diagnostic Orders → Radiology/Laboratory → Pharmacy → Billing → Reports → Follow-up.
+
+All relevant departments must operate on shared, permission-controlled information.
+
+# 2. TECHNOLOGY STACK
+
+Use a modern full-stack TypeScript architecture.
+
+Preferred stack:
+
+**Frontend**
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide icons
+- Recharts
+- React Router
+- TanStack Query
+- React Hook Form
+- Zod validation
+
+**Backend**
+- Node.js
+- TypeScript
+- Express or an equivalent server framework supported by the environment
+- REST APIs
+- Server-Sent Events or WebSockets for real-time updates
+
+**Database**
+- PostgreSQL
+- Prisma ORM or equivalent
+- Database migrations and seed scripts
+
+**AI**
+- Gemini API for conversational reasoning and operational assistance
+- Gemini-compatible speech capabilities where supported
+- Tool/function calling for authorized application actions
+- Structured JSON responses
+- Server-side AI orchestration
+
+**Authentication**
+- Secure session management
+- Role-based access control
+- Password hashing
+- Account activation and password reset
+- Patient OTP authentication when a real provider is configured
+
+**File Storage**
+- Secure document storage abstraction
+- Support prescriptions, reports, and medical documents
+
+If Google AI Studio's current runtime does not support a preferred service, use a compatible alternative and clearly document the substitution.
+
+Never expose Gemini API keys or database credentials in frontend code.
+
+Never claim external integrations are working unless configured and tested.
+
+# 3. DESIGN SYSTEM — PREMIUM HEALTHCARE SAAS
+
+Create a premium, modern healthcare application.
+
+The visual design must resemble a sophisticated enterprise SaaS platform rather than a student project.
+
+## Brand Identity
+
+Name: CareOS
+
+Tagline: Intelligent Healthcare Operations.
+
+Primary colors:
+- Midnight Navy: #071426
+- Deep Blue: #0D2036
+- Electric Cyan: #28D9E8
+- Medical Teal: #17BFA6
+- White: #FFFFFF
+- Cool Gray: #B8C8D8
+
+Use a professional modern font such as Inter or Manrope.
+
+## Design Requirements
+
+- Clean dashboard layouts.
+- Premium typography.
+- Spacious cards.
+- Subtle shadows.
+- Elegant borders.
+- Responsive navigation.
+- Smooth transitions.
+- Clear status indicators.
+- Consistent icons.
+- Meaningful charts.
+- Accessible forms.
+- Beautiful loading states.
+- Empty states.
+- Error states.
+- Toast notifications.
+- Confirmation dialogs.
+- Search and filtering.
+- Keyboard accessibility.
+
+Use a dark navy sidebar with a clean light or dark main workspace.
+
+Provide a global theme switcher.
+
+Every role should have a tailored dashboard with its own navigation and functionality.
+
+## Application Layout
+
+Desktop:
+- Collapsible left sidebar.
+- Top navigation bar.
+- Main content workspace.
+- Notifications panel.
+- Global search.
+- User profile menu.
+
+Mobile:
+- Responsive navigation.
+- Touch-friendly controls.
+- Optimized patient experience.
+- Readable cards and forms.
+
+Do not prioritize visual effects over usability.
+
+# 4. AUTHENTICATION AND ROLE-BASED ACCESS
+
+Implement role-based login and authorization.
+
+Roles:
+
+1. Super Admin
+2. Hospital Admin
+3. Receptionist
+4. Doctor
+5. Nurse
+6. Radiology Staff
+7. Laboratory Staff
+8. Pharmacist
+9. Billing Staff
+10. Patient
+
+Every user must access only authorized information.
+
+Implement protected routes and backend authorization checks.
+
+Do not rely on frontend role checks for security.
+
+Create a demonstration login screen with clearly labeled demo accounts for every role.
+
+Use synthetic patient records and non-production demo credentials.
+
+Provide an easy demo-role switcher in demonstration mode only.
+
+# 5. CARE RECEPTION — COMPLETE RECEPTIONIST PORTAL
+
+Create a fully functional receptionist dashboard.
+
+## Dashboard Overview
+
+Display:
+- Today's appointments.
+- Total patients.
+- Checked-in patients.
+- Waiting patients.
+- Completed consultations.
+- Cancelled appointments.
+- Doctors available.
+- Department workloads.
+- Average estimated waiting time.
+
+## Patient Registration
+
+Receptionist can:
+- Register new patients.
+- Search existing patients.
+- Update demographic information.
+- View previous appointments where authorized.
+- Generate unique patient identifiers.
+- Create secure patient account invitations.
+
+Patient fields:
+- Full name
+- Date of birth
+- Contact number
+- Email
+- Gender, where relevant and optional
+- Emergency contact
+- Patient identifier
+
+Avoid unnecessary collection of sensitive data.
+
+## Appointment Booking
+
+Receptionist can:
+- Select department.
+- Select doctor.
+- View available slots.
+- View estimated waiting time.
+- Book an appointment.
+- Reschedule an appointment.
+- Cancel an appointment.
+- Register walk-in patients.
+- Assign check-in tokens.
+
+Prevent double bookings and conflicting appointment slots.
+
+Booking changes must immediately update relevant dashboards.
+
+# 6. CAREQUEUE — THE CORE HACKATHON MODULE
+
+THIS IS THE MOST IMPORTANT MODULE.
+
+Build a complete working outpatient queue management system.
+
+It must satisfy the official ClinicQueue problem statement.
+
+## Required Features
+
+- Appointment check-in.
+- Walk-in check-in.
+- Department-wise queues.
+- Doctor-wise queues.
+- Token generation.
+- Current token display.
+- Queue position tracking.
+- Estimated waiting times.
+- Real-time queue updates.
+- Staff-configurable priority rules.
+- Manual overrides.
+- Doctor availability tracking.
+- Consultation start and completion.
+- Queue delay management.
+- Clinic-day simulation.
+- End-of-day performance reports.
+
+## Queue State Machine
+
+Implement explicit queue states:
+
+BOOKED → CHECKED_IN → WAITING → CALLED → IN_CONSULTATION → COMPLETED.
+
+Support additional states:
+
+NO_SHOW, CANCELLED, DEFERRED.
+
+Validate all state transitions.
+
+Maintain timestamps for every transition.
+
+## Waiting-Time Prediction Engine
+
+Create a deterministic and explainable baseline prediction engine.
+
+Inputs:
+- Current queue.
+- Number of patients ahead.
+- Consultation duration estimates.
+- Doctor availability.
+- Appointment schedules.
+- Current consultation progress.
+- Priority configuration.
+- Doctor breaks.
+- Unexpected delays.
+- Historical service-time averages.
+
+Calculate ETA based on expected service completion times and provider availability.
+
+For multiple doctors, use provider-specific scheduling and capacity-aware simulation rather than simply subtracting the number of doctors from waiting minutes.
+
+Recalculate predictions whenever relevant queue events occur.
+
+Display:
+- Estimated wait.
+- Expected consultation start time.
+- Last updated timestamp.
+- Confidence or uncertainty range when sufficient data exists.
+- Explanation of major ETA changes.
+
+If historical data is insufficient, use configurable departmental baseline durations.
+
+Clearly label predictions as estimates.
+
+## Priority Rules
+
+Allow staff to configure priority classes.
+
+Examples:
+- Emergency escalation.
+- Time-sensitive clinical cases.
+- Scheduled appointments.
+- Walk-in patients.
+- Accessibility or assistance needs.
+
+Priority rules must be configurable and transparent.
+
+Do not automatically assign medical urgency using an LLM.
+
+Emergency classifications require authorized staff input.
+
+## Manual Overrides
+
+Authorized staff can:
+- Move a patient within a queue.
+- Reassign a patient to another doctor.
+- Mark a doctor unavailable.
+- Insert a priority patient.
+- Delay a consultation.
+- Correct queue status.
+
+Require an override reason.
+
+Record:
+- User
+- Timestamp
+- Previous state
+- New state
+- Reason
+
+## Live Queue Dashboard
+
+Show:
+- Department selector.
+- Doctor selector.
+- Current patient token.
+- Next patient.
+- Waiting list.
+- Predicted ETA.
+- Priority indicators.
+- Consultation progress.
+- Queue status.
+- Staff actions.
+
+Use real-time subscriptions where supported.
+
+## Clinic-Day Simulation
+
+Create a simulation module.
+
+Allow administrators to configure:
+- Number of doctors.
+- Number of patients.
+- Arrival distribution.
+- Consultation duration distribution.
+- Walk-in percentage.
+- Priority-case frequency.
+- Doctor delays.
+- Break durations.
+
+Generate synthetic clinic-day events.
+
+Compare a conventional queue baseline with CareQueue using equivalent scenarios.
+
+Measure:
+- Average waiting time.
+- Median waiting time.
+- 90th-percentile waiting time.
+- ETA prediction error.
+- Completed consultations.
+- Doctor utilization.
+- Priority-case handling.
+- Manual overrides.
+- Rescheduled appointments.
+
+Display charts and exportable reports.
+
+Never fabricate simulation results. Generate them from actual simulation execution.
+
+# 7. CAREVOICE — AI VOICE AGENT
+
+Build an AI-powered appointment and queue assistant.
+
+The assistant should support:
+- Appointment booking.
+- Rescheduling.
+- Cancellation.
+- Doctor availability.
+- Department information.
+- Queue position inquiries.
+- Estimated waiting-time updates.
+- General hospital information.
+
+Provide a premium conversational interface with:
+- Microphone control.
+- Voice waveform.
+- Live transcript.
+- Conversation history.
+- Booking confirmation cards.
+- Tool-action status.
+- Human handoff option.
+
+Support English and Telugu where supported by the configured speech provider.
+
+## Voice Agent Workflow
+
+Patient speaks → Speech recognition → Intent understanding → Authorized backend tool → Database update → Confirmation response.
+
+The AI must never invent available appointment slots.
+
+It must call backend tools to retrieve actual availability.
+
+Require explicit patient confirmation before booking, cancellation, or rescheduling.
+
+Use verified patient identity before disclosing private appointment or medical information.
+
+If live speech services are unavailable, provide a fully functional text-based agent and clearly label voice mode as unconfigured.
+
+# 8. CAREPATIENT — PATIENT PORTAL
+
+Create a beautiful, mobile-first patient portal.
+
+## Dashboard
+
+Display:
+- Welcome message.
+- Upcoming appointment.
+- Live queue token.
+- Estimated waiting time.
+- Doctor information.
+- Appointment history.
+- Prescriptions.
+- Medications.
+- Diagnostic orders.
+- Reports.
+- Billing.
+- Follow-up reminders.
+
+## Appointment Management
+
+Patients can:
+- View appointments.
+- Book appointments.
+- Request rescheduling.
+- Cancel eligible appointments.
+- Check in where permitted.
+- Track live queues.
+
+## Medical Records
+
+Patients can access authorized:
+- Consultation summaries.
+- Prescriptions.
+- Diagnostic reports.
+- Medication instructions.
+- Follow-up recommendations.
+
+Do not generate medical advice or change prescriptions autonomously.
+
+## Billing
+
+Display:
+- Consultation charges.
+- Diagnostic charges.
+- Pharmacy charges.
+- Payment status.
+- Insurance status.
+- Itemized billing history.
+
+# 9. CAREDOCTOR — DOCTOR PORTAL
+
+Build a complete doctor workspace.
+
+Features:
+- Today's appointments.
+- Active queue.
+- Patient consultation history.
+- Patient record viewer.
+- Consultation notes.
+- Diagnosis entry.
+- Prescription creation.
+- Diagnostic order creation.
+- Report review.
+- Follow-up scheduling.
+- Consultation completion.
+
+## Consultation Workflow
+
+Doctor opens patient → Starts consultation → Records notes → Adds medication orders → Orders diagnostics if needed → Finalizes consultation → Queue updates.
+
+Use structured clinical records.
+
+Only authorized clinicians can finalize clinical orders.
+
+Provide prescription PDF generation with an appropriate signature placeholder or a properly configured signing workflow.
+
+Do not represent a typed name as a legally valid digital signature.
+
+# 10. CAREDIAGNOSTICS — RADIOLOGY AND LABORATORY
+
+Build separate radiology and laboratory workspaces.
+
+## Radiology Dashboard
+
+Show:
+- Pending diagnostic orders.
+- Scheduled examinations.
+- Equipment availability.
+- Technician assignments.
+- Patient details where authorized.
+- Examination status.
+- Report upload.
+- Report finalization status.
+
+## Laboratory Dashboard
+
+Show:
+- Pending test orders.
+- Sample collection status.
+- Processing status.
+- Result entry.
+- Authorized report verification.
+- Completed tests.
+
+## Cross-Department Workflow
+
+Doctor creates diagnostic order.
+
+System creates a structured department task.
+
+Department receives the task.
+
+Staff schedule and perform the examination.
+
+Configured service charge creates a billing entry.
+
+Authorized clinician finalizes the report.
+
+Doctor and patient portals receive the finalized report according to access and release policies.
+
+Every action updates the same shared workflow state.
+
+Do not expose draft or unverified diagnostic results as finalized reports.
+
+# 11. CARENURSE — NURSING DASHBOARD
+
+Features:
+- Assigned patients.
+- Nursing task lists.
+- Patient care schedules.
+- Bed availability.
+- Bed assignment tracking.
+- Medication stock visibility.
+- Hygiene checklists.
+- Shift handover notes.
+- Task completion status.
+- Operational alerts.
+
+Nurses must only access information permitted by their role and assignments.
+
+# 12. CAREPHARMACY — PHARMACY MANAGEMENT
+
+Features:
+- Incoming prescriptions.
+- Medication inventory.
+- Stock availability.
+- Low-stock alerts.
+- Prescription fulfillment.
+- Dispensing status.
+- Pharmacy billing.
+- Medication transaction history.
+
+Only authorized staff can record medication dispensing.
+
+Prevent duplicate fulfillment through idempotent operations.
+
+# 13. CAREFINANCE — BILLING AND INSURANCE
+
+Create a centralized billing engine.
+
+## Billing Sources
+
+- Consultation charges.
+- Radiology charges.
+- Laboratory charges.
+- Pharmacy charges.
+- Other configured services.
+
+## Features
+
+- Department-wise price catalog.
+- Automatic charge generation from eligible workflow events.
+- Itemized invoices.
+- Payment status.
+- Partial payments.
+- Refund tracking.
+- Insurance information.
+- Claim status tracking.
+- Billing analytics.
+
+Prevent duplicate charges when events are retried.
+
+Use a ledger-style billing model.
+
+Do not claim real payment or insurance integrations unless configured.
+
+# 14. CAREADMIN — HOSPITAL COMMAND CENTER
+
+Create an advanced hospital-wide operations dashboard.
+
+Display:
+
+**Patient Metrics**
+- Total patients.
+- Active appointments.
+- Patients waiting.
+- Patients in consultation.
+- Completed consultations.
+
+**Queue Metrics**
+- Department waiting times.
+- Queue lengths.
+- Doctor delays.
+- ETA prediction accuracy.
+- Priority cases.
+
+**Operational Metrics**
+- Doctor availability.
+- Department workloads.
+- Bed occupancy.
+- Diagnostic workloads.
+- Nursing task status.
+
+**Financial Metrics**
+- Billing totals.
+- Outstanding balances.
+- Department revenue.
+- Service utilization.
+
+**AI Operations**
+- Agent activity.
+- Pending approvals.
+- Automated actions.
+- Failed tasks.
+- Operational alerts.
+
+## Analytics
+
+Include:
+- Daily patient volume charts.
+- Department performance.
+- Queue waiting-time trends.
+- Doctor utilization.
+- Diagnostic turnaround times.
+- Billing summaries.
+
+Allow filtering by date, department and doctor.
+
+# 15. MULTI-AGENT INTELLIGENCE ARCHITECTURE
+
+Build a real tool-driven agent system, not multiple disconnected chatbots.
+
+Agents must use authorized application APIs.
+
+## Agents
+
+### Queue Agent
+Analyzes queue events, predicts waiting times, and detects delays.
+
+### Scheduling Agent
+Finds available slots and proposes rescheduling.
+
+### Voice Agent
+Handles conversational patient interactions.
+
+### Diagnostics Agent
+Monitors diagnostic workflows and pending tasks.
+
+### Billing Agent
+Checks billing events and identifies inconsistencies.
+
+### Operations Agent
+Detects operational bottlenecks and recommends actions.
+
+### Analytics Agent
+Produces summaries and clinic-day reports.
+
+## Agent Orchestration
+
+Use event-driven coordination.
+
+Example event:
+
+DoctorDelayed.
+
+Expected workflow:
+
+1. Doctor availability changes.
+2. Queue prediction service recalculates ETAs.
+3. Scheduling agent identifies affected appointments.
+4. Notification workflow prepares patient updates.
+5. Reception dashboard receives alerts.
+6. Admin dashboard updates operational metrics.
+7. Authorized staff approve actions when required.
+
+Agents must not directly modify the database outside validated application services.
+
+Use structured tool calls.
+
+Validate all tool arguments.
+
+Apply authorization and patient access checks.
+
+Log agent actions.
+
+Require human approval for sensitive operations.
+
+# 16. SYSTEM ARCHITECTURE
+
+Implement the following logical architecture:
+
+CLIENT APPLICATIONS
+
+Patient Portal | Reception Portal | Doctor Portal | Nurse Portal | Diagnostics Portal | Pharmacy Portal | Billing Portal | Admin Portal
+
+↓
+
+SECURE API LAYER
+
+Authentication | Authorization | Request Validation | Rate Limiting
+
+↓
+
+APPLICATION SERVICES
+
+Appointment Service | Queue Service | ETA Prediction Service | Clinical Workflow Service | Diagnostics Service | Pharmacy Service | Billing Service | Notification Service
+
+↓
+
+EVENT AND WORKFLOW ENGINE
+
+Domain Events | Durable Jobs | Retries | Idempotency | Audit Logs
+
+↓
+
+AI ORCHESTRATION LAYER
+
+Gemini Agents | Function Calling | Tool Permissions | Approval Workflows
+
+↓
+
+DATA AND INTEGRATIONS
+
+PostgreSQL | Document Storage | Hospital System Connectors | Messaging Providers | External APIs
+
+## Architectural Requirements
+
+- Clear separation of frontend and backend.
+- Typed API contracts.
+- Centralized validation.
+- Database transactions for critical updates.
+- Event-driven workflows.
+- Idempotent event handlers.
+- Role-based access control.
+- Audit logging.
+- Graceful error handling.
+- Retry-safe operations.
+- Secure file access.
+- Scalable modular design.
+
+# 17. DATABASE DESIGN
+
+Create a relational database schema covering:
+
+- Hospitals
+- Departments
+- Users
+- Roles
+- Staff profiles
+- Patients
+- Doctors
+- Doctor availability
+- Appointments
+- Check-ins
+- Queue entries
+- Queue events
+- Priority rules
+- Manual overrides
+- Consultations
+- Prescriptions
+- Prescription items
+- Diagnostic orders
+- Diagnostic reports
+- Laboratory orders
+- Laboratory results
+- Nursing tasks
+- Beds
+- Pharmacy inventory
+- Medication dispensing
+- Service price catalog
+- Invoices
+- Invoice items
+- Payments
+- Insurance records
+- Notifications
+- Agent tasks
+- Agent action logs
+- Audit logs
+- Simulation runs
+- Simulation metrics
+
+Use UUIDs or similarly robust identifiers.
+
+Define proper foreign keys, unique constraints, indexes and state-transition rules.
+
+Use hospital-level tenant isolation if multi-hospital support is implemented.
+
+# 18. COMPLETE APPLICATION ROUTES
+
+Create the following routes or equivalent organized navigation.
+
+## Public
+/
+ /login
+ /register
+ /about
+
+## Reception
+/reception/dashboard
+/reception/patients
+/reception/appointments
+/reception/check-in
+/reception/queue
+/reception/doctors
+
+## CareQueue
+/queue/live
+/queue/analytics
+/queue/priorities
+/queue/simulation
+
+## Patient
+/patient/dashboard
+/patient/appointments
+/patient/queue
+/patient/prescriptions
+/patient/reports
+/patient/billing
+/patient/profile
+
+## Doctor
+/doctor/dashboard
+/doctor/queue
+/doctor/patients
+/doctor/consultations
+/doctor/prescriptions
+/doctor/diagnostics
+
+## Radiology
+/radiology/dashboard
+/radiology/orders
+/radiology/schedule
+/radiology/reports
+
+## Laboratory
+/lab/dashboard
+/lab/orders
+/lab/results
+
+## Nurse
+/nurse/dashboard
+/nurse/patients
+/nurse/beds
+/nurse/tasks
+
+## Pharmacy
+/pharmacy/dashboard
+/pharmacy/prescriptions
+/pharmacy/inventory
+
+## Billing
+/billing/dashboard
+/billing/invoices
+/billing/payments
+/billing/insurance
+
+## Admin
+/admin/dashboard
+/admin/departments
+/admin/staff
+/admin/operations
+/admin/analytics
+/admin/agents
+/admin/settings
+
+## AI
+/ai/voice
+/ai/agents
+/ai/activity
+
+All routes must have functional navigation and appropriate authorization.
+
+# 19. REAL-TIME SYNCHRONIZATION
+
+When a receptionist creates an appointment:
+
+- Save the appointment.
+- Update the doctor's schedule.
+- Update the reception dashboard.
+- Update the patient portal.
+- Recalculate affected queue estimates.
+- Generate an appointment notification.
+
+When a doctor completes a consultation:
+
+- Update consultation status.
+- Advance the queue.
+- Recalculate waiting times.
+- Update the doctor dashboard.
+- Update the patient dashboard.
+- Update admin analytics.
+
+When a diagnostic order is created:
+
+- Create the diagnostic task.
+- Update the diagnostics dashboard.
+- Update patient order status.
+- Generate applicable billing entries.
+- Update relevant analytics.
+
+Use one source of truth for every workflow.
+
+Do not create independent hardcoded data arrays for each dashboard.
+
+# 20. NOTIFICATIONS
+
+Implement an in-app notification center.
+
+Support events such as:
+- Appointment confirmed.
+- Appointment rescheduled.
+- Queue ETA changed.
+- Patient called.
+- Doctor delayed.
+- Diagnostic appointment scheduled.
+- Report finalized.
+- Payment recorded.
+- Follow-up reminder.
+
+Use real notification records stored in the database.
+
+SMS, WhatsApp and email should be implemented through provider adapters when credentials are available.
+
+Do not pretend an external message was delivered if no provider is configured.
+
+# 21. DEMO DATA FOR HACKATHON
+
+Create a realistic synthetic hospital environment.
+
+Include:
+
+- One demonstration hospital.
+- Multiple departments.
+- At least 8 doctors.
+- At least 50 synthetic patients.
+- Receptionists.
+- Nurses.
+- Radiology staff.
+- Laboratory staff.
+- Pharmacy staff.
+- Billing staff.
+- Admin users.
+- Appointments.
+- Active queues.
+- Completed consultations.
+- Diagnostic orders.
+- Prescriptions.
+- Billing records.
+- Sample reports.
+- Queue delays.
+
+Include realistic Indian names and a Visakhapatnam hospital context.
+
+All records must be explicitly synthetic.
+
+Provide a one-click demo reset feature accessible only to demonstration administrators.
+
+# 22. INTERACTIVE HACKATHON DEMO MODE
+
+Create a dedicated demonstration experience.
+
+The demo should show a complete patient journey.
+
+## Demo Scenario
+
+1. Receptionist registers a patient.
+2. Receptionist books an appointment.
+3. Patient receives a booking reference.
+4. Patient checks in.
+5. CareQueue predicts waiting time.
+6. Doctor experiences a delay.
+7. Queue ETA updates.
+8. Voice assistant communicates the revised estimate.
+9. Doctor begins consultation.
+10. Doctor creates a radiology order.
+11. Radiology receives the order.
+12. Billing ledger updates.
+13. Radiology finalizes a synthetic report.
+14. Patient and doctor portals display the report.
+15. Admin dashboard reflects all changes.
+
+Provide a guided demo panel with the current scenario step and a link to the relevant screen.
+
+Use real application state transitions, not prerecorded fake updates.
+
+# 23. TESTING REQUIREMENTS
+
+Create automated tests for:
+
+- Authentication.
+- Role authorization.
+- Patient registration.
+- Appointment booking.
+- Double-booking prevention.
+- Patient check-in.
+- Queue state transitions.
+- ETA recalculation.
+- Priority rules.
+- Manual overrides.
+- Doctor delays.
+- Consultation completion.
+- Diagnostic order routing.
+- Billing entry generation.
+- Duplicate billing prevention.
+- Report release permissions.
+- Patient data isolation.
+- Agent tool permissions.
+- Clinic-day simulation.
+
+Test the complete end-to-end demonstration workflow.
+
+Include a development test report.
+
+Do not claim tests passed unless they were actually executed.
+
+# 24. IMPLEMENTATION PRIORITIES
+
+Build in the following order.
+
+## PHASE 1 — WORKING FOUNDATION
+
+- Application shell.
+- Authentication.
+- Database.
+- Role-based navigation.
+- Demo users.
+- Departments.
+- Patients.
+- Doctors.
+- Appointment booking.
+
+## PHASE 2 — COMPLETE CLINICQUEUE
+
+- Check-in.
+- Queue management.
+- ETA engine.
+- Priority rules.
+- Manual overrides.
+- Real-time updates.
+- Clinic-day simulation.
+
+This phase must be fully functional before adding optional modules.
+
+## PHASE 3 — CONNECTED CARE
+
+- Doctor consultation workflow.
+- Diagnostic orders.
+- Radiology and laboratory dashboards.
+- Patient records.
+- Billing integration.
+- Notifications.
+
+## PHASE 4 — AI INTELLIGENCE
+
+- Gemini conversational agent.
+- Scheduling tools.
+- Voice capabilities.
+- Queue assistance.
+- Agent orchestration.
+- Operational analytics.
+
+## PHASE 5 — ADDITIONAL HOSPITAL MODULES
+
+- Nursing.
+- Pharmacy.
+- Insurance tracking.
+- Advanced administration.
+- External integration adapters.
+
+## PHASE 6 — POLISH AND VALIDATION
+
+- Responsive design.
+- Accessibility.
+- Automated testing.
+- Performance optimization.
+- Security checks.
+- Demo walkthrough.
+- Documentation.
+
+Do not sacrifice the functional ClinicQueue MVP to generate dozens of incomplete pages.
+
+# 25. STRICT DEVELOPMENT RULES
+
+1. Every visible button must have a meaningful action.
+2. Every form must validate and save data.
+3. Every dashboard must use actual application state.
+4. Every route must render properly.
+5. Every data mutation must persist.
+6. Every cross-department update must be synchronized.
+7. Every protected API must enforce authorization.
+8. Every AI tool call must be validated.
+9. Every sensitive action must be auditable.
+10. Every queue estimate must be generated by the prediction engine.
+11. Every simulation metric must come from executed simulation logic.
+12. Every clinical workflow must preserve professional oversight.
+13. Every external integration must indicate whether it is configured.
+14. Every error must produce understandable feedback.
+15. Every important workflow must have tests.
+
+Avoid:
+- Placeholder-only dashboards.
+- Fake real-time updates.
+- Nonfunctional buttons.
+- Static charts presented as live analytics.
+- Hardcoded patient data as the only data source.
+- Insecure direct database access from the frontend.
+- API keys exposed in browser code.
+- AI-generated clinical decisions without professional review.
+
+# 26. GOOGLE AI STUDIO EXECUTION INSTRUCTIONS
+
+Start by inspecting the available runtime, project files, installed packages, database capabilities, environment variables and deployment options.
+
+Then:
+
+1. Establish the application architecture.
+2. Create the project structure.
+3. Implement the shared design system.
+4. Configure persistence and authentication.
+5. Implement the complete CareQueue MVP.
+6. Build and connect role-based portals.
+7. Add clinical and diagnostic workflows.
+8. Implement the billing ledger.
+9. Integrate Gemini through secure backend services.
+10. Implement the agent tools and approval mechanisms.
+11. Create synthetic demo data.
+12. Run automated tests.
+13. Fix discovered issues.
+14. Verify the full demonstration workflow.
+15. Provide deployment instructions.
+
+Work incrementally.
+
+Keep the application runnable after each phase.
+
+When a required external service is unavailable, create a clearly labeled development adapter or local demonstration implementation.
+
+Do not silently replace essential functionality with static mockups.
+
+If the project exceeds the current generation or execution limits, prioritize completing the ClinicQueue MVP and its connected patient journey before expanding.
+
+# 27. FINAL ACCEPTANCE CRITERIA
+
+The application is acceptable only when:
+
+- Receptionist can register a patient.
+- Receptionist can book an appointment.
+- Patient can check in.
+- Queue token is generated.
+- Estimated waiting time is calculated.
+- Staff can configure priority rules.
+- Staff can manually override queue ordering.
+- Doctor can start and complete consultation.
+- Queue automatically advances.
+- Patient sees updated ETA.
+- Doctor can issue a diagnostic order.
+- Radiology receives the order.
+- Billing reflects the configured charge.
+- Authorized staff can finalize a synthetic report.
+- Doctor and patient can access the released report.
+- Admin can monitor hospital operations.
+- Clinic-day simulation executes and produces real calculated metrics.
+- AI assistant can retrieve availability through tools.
+- AI assistant can book or reschedule with confirmation.
+- Role-based authorization is enforced.
+- All major data changes persist.
+
+# FINAL INSTRUCTION
+
+Build **CareOS — a connected, intelligent, AI-assisted healthcare operating system**, with CareQueue as the fully functional foundation.
+
+Prioritize technical correctness, operational reliability, intuitive design, real-time coordination and an exceptional hackathon demonstration.
+
+The finished product should feel like a premium healthcare SaaS application and demonstrate how an intelligent orchestration layer can coordinate an entire hospital.
+
+**Begin implementing the application now. Do not stop after generating a project plan or landing page.**
